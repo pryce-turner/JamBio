@@ -1,0 +1,8 @@
+{% extends "QC/base_generic.html" %}
+{% block content %}
+
+{% for dir in dirlist %}
+    <li><a href="/QC/reports/{{ dir.1 }}/">{{ dir.0 }}</a></li>
+{% endfor %}
+
+{% endblock %}

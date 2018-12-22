@@ -1,0 +1,18 @@
+{% extends "Transfer/base_generic.html" %}
+{% block content %}
+
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        <table>
+        {{ form }}
+        </table>
+        <input type="submit" value="Submit" />
+    </form>
+
+
+    <ul>
+        <li>Individual records can be viewed in the 
+            <a href="{% url 'admin:index' %}">Admin Panel</a>
+        </li>
+    </ul>
+
+{% endblock %}

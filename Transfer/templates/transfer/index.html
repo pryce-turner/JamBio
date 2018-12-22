@@ -1,0 +1,16 @@
+{% extends "Transfer/base_generic.html" %}
+
+{% block content %}
+  <h1>Transfer Home</h1>
+
+  <h2>Welcome to the Data Transfer homepage</h2>
+  <p>The database has the following record counts:</p>
+
+  <ul>
+    <li><strong>Number of Work Orders:</strong> {{ num_work_order }}</li>
+    <li>Individual records can be viewed in the 
+      <a href="{% url 'admin:index' %}">Admin Panel</a>
+    </li>
+  </ul>
+
+{% endblock %}
