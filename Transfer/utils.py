@@ -8,26 +8,17 @@ from openpyxl import load_workbook
 
 from .models import ComponentInformation, TubeInformation, CoreData, ExecutionStats
 from .constants import PROJECT_STORAGE
+from .settings import max_sheet_width, max_sheet_length
 
-# Variables for storing column names in submission sheet
-STR_INDIVIDUAL_LIB  = 'Individual Libraries'
-STR_SAMPLE_TYPE     = 'Sample Type:'
-STR_NGX_BIO_WO      = 'NGX Bio WO#:'
-STR_TUBE_ID         = 'Tube ID'
-STR_POOL_NAMES      = 'Pool Names' # Pools in 'Pool Information' table
-STR_POOL_ID         = 'Pool Name'  # Pools in 'Indexing Information' table
-STR_LIBRARY_ID      = 'Individual Library ID'
-STR_VOLUME          = 'Volume (ul)'
-STR_CONCENTRATION   = 'Concentration (ng/ul)'
-STR_QUANTITATION    = 'Quantitation Method'
-STR_AMOUNT          = 'Total Amount (ug)'
-STR_BUFFER          = 'Buffer (TE or Water)'
-STR_ORGANISM        = 'Organism'
-STR_I7_INDEX_NAME   = 'i7 Index Name'
-STR_I7_INDEX_SEQ    = 'i7 Index Sequence'
-STR_I5_INDEX_NAME   = 'i5 Index Name'
-STR_I5_INDEX_SEQ    = 'i5 Index Sequence'
-
+def expand_value_to_dict(input_dict):
+    expanded_dict = {}
+    for key, value in input_dict.items():
+        expanded_dict[key] = {
+        'name_in_sheet' : value,
+        'column'        : 0,
+        'row'           : 0
+        }
+    return expanded_dict
 
 class SubmissionExcelParser(object):
     """Parses customer submission sheet
@@ -69,41 +60,40 @@ class SubmissionExcelParser(object):
     def find_columns(self):
         """Loads correct worksheet and pulls x, y column coordinates. """
 
+        # Variables for storing column names in submission sheet
+        column_name_mappings = {
+            'STR_INDIVIDUAL_LIB' : 'Individual Libraries'
+            'STR_SAMPLE_TYPE'    : 'Sample Type:'
+            'STR_NGX_BIO_WO'     : 'NGX Bio WO#:'
+            'STR_TUBE_ID'        : 'Tube ID'
+            'STR_POOL_NAMES'     : 'Pool Names' # Pools in 'Pool Information' table
+            'STR_POOL_ID'        : 'Pool Name'  # Pools in 'Indexing Information' table
+            'STR_LIBRARY_ID'     : 'Individual Library ID'
+            'STR_VOLUME'         : 'Volume (ul)'
+            'STR_CONCENTRATION'  : 'Concentration (ng/ul)'
+            'STR_QUANTITATION'   : 'Quantitation Method'
+            'STR_AMOUNT'         : 'Total Amount (ug)'
+            'STR_BUFFER'         : 'Buffer (TE or Water)'
+            'STR_ORGANISM'       : 'Organism'
+            'STR_I7_INDEX_NAME'  : 'i7 Index Name'
+            'STR_I7_INDEX_SEQ'   : 'i7 Index Sequence'
+            'STR_I5_INDEX_NAME'  : 'i5 Index Name'
+            'STR_I5_INDEX_SEQ'   : 'i5 Index Sequence'
+            }
+
+        self.column_headers = expand_value_to_dict(column_name_mappings)
+
         self.submission_detail_ws = self.wb[self.submission_type]
 
-        for row in range(1, 50):
-            for column in range(1, 50):
+        for row in range(1, max_sheet_length):
+            for column in range(1, max_sheet_width):
 
                 sheet_val = self.submission_detail_ws.cell(row=row, column=column).value
 
-                if sheet_val == STR_TUBE_ID:
-                    self.tube_coord = column, row
-                if sheet_val == STR_POOL_NAMES:
-                    self.pools_coord = column, row
-                if sheet_val == STR_VOLUME:
-                    self.volume_coord = column, row
-                if sheet_val == STR_CONCENTRATION:
-                    self.conc_coord = column, row
-                if sheet_val == STR_AMOUNT:
-                    self.amount_coord = column, row
-                if sheet_val == STR_QUANTITATION:
-                    self.quant_coord = column, row
-                if sheet_val == STR_BUFFER:
-                    self.buff_coord = column, row
-                if sheet_val == STR_ORGANISM:
-                    self.org_coord = column, row
-                if sheet_val == STR_POOL_ID:
-                    self.pool_coord = column, row
-                if sheet_val == STR_LIBRARY_ID:
-                    self.sample_coord = column, row
-                if sheet_val == STR_I7_INDEX_NAME:
-                    self.i7_name_coord = column, row
-                if sheet_val == STR_I7_INDEX_SEQ:
-                    self.i7_seq_coord = column, row
-                if sheet_val == STR_I5_INDEX_NAME:
-                    self.i5_name_coord = column, row
-                if sheet_val == STR_I5_INDEX_SEQ:
-                    self.i5_seq_coord = column, row
+                for key, value in column_name_mappings.items():
+                    if sheet_val == value:
+                        self.column_headers[key]['row'] = row
+                        self.column_headers[key]['column'] = column
 
 
     def value_in_column(self, row, field):
