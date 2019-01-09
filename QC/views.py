@@ -60,7 +60,7 @@ def run_qc_handler(request):
                 project_id,
                 'ENQD',
                 'QD',
-                'Job ID: ' + fastqc_result.id
+                f'Job ID: {fastqc_result.id}'
             )
 
             return HttpResponse(
@@ -79,33 +79,24 @@ def run_qc_handler(request):
 
 def list_projects(request):
 
-    wo_dirs = []
-    for wo_dir in os.listdir(PROJECT_STORAGE):
-        wo_dirs.append([wo_dir, signer.sign(wo_dir)])
-    return render(request, 'QC/workorders.html', {'dirlist' : wo_dirs})
+    proj_dirs = []
+    for proj_dir in os.listdir(PROJECT_STORAGE):
+        proj_dirs.append([proj_dir, signer.sign(proj_dir)])
+    return render(request, 'QC/all_projects.html', {'dirlist' : proj_dirs})
 
-def show_report(request, order_id_hash):
+def show_report(request, proj_id_hash):
 
-    order_id = signer.unsign(order_id_hash)
-
-    if str(order_id).lower().startswith('wo-'):
-        project_id = str(order_id)
-    else:
-        project_id = str(ExecutionStats.objects.filter(website_order_id = order_id).latest('exec_date').project_id)
+    proj_id = signer.unsign(proj_id_hash)
 
     project_dir = os.path.join(PROJECT_STORAGE, project_id)
     out_dirs = []
 
-    for out_dir in os.listdir(project_dir):
-        if out_dir.startswith('QC_Output'):
-            out_dirs.append(out_dir)
+    sorted_analyses = [dir for dir in os.listdir(project_dir) if dir.startswith('QC_Output')].sort()
 
-    out_dirs.sort()
+    if len(sorted_analyses) == 0:
+        return HttpResponse('No analyses found for Project ' + str(project_id))
 
-    output_dir = os.path.join(project_dir, out_dirs[-1])
-
-    if not os.path.isdir(output_dir):
-        return HttpResponse('No result found for Work-Order ' + str(project_id))
+    most_recent_analysis = os.path.join(project_dir, sorted_analyses[-1])
 
     total_fastq = 0
     total_fastqc = 0
@@ -115,16 +106,20 @@ def show_report(request, order_id_hash):
             if filename.endswith('fastq.gz'):
                 total_fastq += 1
 
-    for root, dirs, files in os.walk(output_dir):
+    for root, dirs, files in os.walk(most_recent_analysis):
         for filename in files:
             if filename.endswith('fastqc.html'):
                 total_fastqc += 1
             if filename.endswith('multiqc_report.html'):
                 report_path = os.path.join(root, filename)
-                print('report_path: ' + report_path)
+                print(f"Report Path: {report_path}")
                 return HttpResponse(QC.display_multiqc(report_path))
                 break
 
     progress = total_fastqc / total_fastq
 
-    return HttpResponse(('MultiQC report not yet ready. FastQC is still processing with {} percent completion.').format(progress*100))
+    return HttpResponse(
+        "MultiQC report not yet ready. "
+        f"FastQC is still processing with {progress*100} percent completion."
+        )
+                    )

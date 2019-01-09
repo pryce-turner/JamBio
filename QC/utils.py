@@ -16,10 +16,10 @@ from .models import ExecutionStats
 def status_logger(project_id, status, analysis_type, details=None, exec_time=None):
     ExecutionStats.objects.create(
         project_id = project_id,
-        analysis_type = analysis_type,
-        exec_date = exec_time if exec_time != None else timezone.now(),
         exec_status = status,
-        details = details
+        analysis_type = analysis_type,
+        details = details,
+        exec_date = exec_time if exec_time != None else timezone.now()
     )
 
 class QC(object):
@@ -50,7 +50,7 @@ class QC(object):
         os.mkdir(self.multiqc_output_dir)
         os.mkdir(self.fastqc_output_dir)
 
-        print('Output directory: ' + self.run_output_dir)
+        print(f"Output Directory: {self.run_output_dir}")
 
     def run_aggregated_qc(self):
         if self.run_fastqc() == 0:
