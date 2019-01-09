@@ -12,10 +12,10 @@ from .constants import PROJECT_STORAGE
 from .forms import ImportCompareForm
 from .utils import index_match, parse_illumina_fastq, error_logger, SubmissionExcelParser, AdmeraFastQParser, DataComparison
 
-def status_logger(wo_id, status, details):
+def status_logger(project_id, status, details):
     """Creates database entries for failed / erroneous runs"""
     ExecutionStats.objects.create(
-        wo_id = wo_id,
+        project_id = project_id,
         exec_date = datetime.datetime.now(),
         exec_status = status,
         fail_reason = details
@@ -59,10 +59,10 @@ def import_and_compare_handler(request):
 
 
 @transaction.atomic
-def delete_preexisting_wo_objects(wo_id):
-    CoreData.objects.filter(wo_id=wo_id).delete()
-    ComponentInformation.objects.filter(wo_id=wo_id).delete()
-    TubeInformation.objects.filter(wo_id=wo_id).delete()
+def delete_preexisting_wo_objects(project_id):
+    CoreData.objects.filter(project_id=project_id).delete()
+    ComponentInformation.objects.filter(project_id=project_id).delete()
+    TubeInformation.objects.filter(project_id=project_id).delete()
 
 
 def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
@@ -72,9 +72,9 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
         print('Excel parser initialized')
 
         preexisting_wo_objects = (
-            CoreData.objects.filter(wo_id=current_sheet.wo_id_from_sheet).count() +
-            ComponentInformation.objects.filter(wo_id=current_sheet.wo_id_from_sheet).count() +
-            TubeInformation.objects.filter(wo_id=current_sheet.wo_id_from_sheet).count()
+            CoreData.objects.filter(project_id=current_sheet.wo_id_from_sheet).count() +
+            ComponentInformation.objects.filter(project_id=current_sheet.wo_id_from_sheet).count() +
+            TubeInformation.objects.filter(project_id=current_sheet.wo_id_from_sheet).count()
         )
 
         print('Checking for pre-existing WO objects')

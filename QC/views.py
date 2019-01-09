@@ -8,11 +8,11 @@ from django.views.generic.edit import FormView
 from django.utils import timezone
 from django.core.signing import Signer
 
-from redis import Redis
+import redis
 import django_rq
 
 from .constants import PROJECT_STORAGE
-from .forms import FastQDirInputForm
+from .forms import ProjectDirInputForm
 from .models import ExecutionStats
 from .utils import QC, status_logger
 
@@ -36,31 +36,37 @@ def run_qc_handler(request):
 
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = FastQDirInputForm(request.POST)
+        form = ProjectDirInputForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            fastq_dir = form.cleaned_data['fastq_dir']
-            wo_id = form.cleaned_data['wo_id']
+            project_dir = form.cleaned_data['project_dir']
+            project_id = project_dir.split('/')[-1]
             timestamp = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
 
             try:
-                runner = QC(wo_id, fastq_dir, timestamp)
+                runner = QC(project_id, project_dir, timestamp)
             except Exception as error:
                 return HttpResponse(error)
 
-            fastqc_result = q.enqueue(runner.run_aggregated_qc)
+            try:
+                fastqc_result = q.enqueue(runner.run_aggregated_qc)
+            except redis.exceptions.ConnectionError as error:
+                return HttpResponse(
+                    "Redis could not connect to a queue, please ensure "
+                    "that redis-server is installed and running."
+                    )
 
             status_logger(
-                wo_id,
+                project_id,
                 'ENQD',
                 'QD',
                 'Job ID: ' + fastqc_result.id
             )
 
-            return HttpResponse((
+            return HttpResponse(
                 "Successfully added files for processing. "
                 "Please come back later to view report. "
-                "Job ID: {}").format(fastqc_result.id)
+                f"Job ID: {fastqc_result.id}"
                 )
 
         else:
@@ -68,7 +74,7 @@ def run_qc_handler(request):
 
     # if a GET (or any other method), return a blank form
     else:
-        form = FastQDirInputForm()
+        form = ProjectDirInputForm()
         return render(request, 'QC/form_generic.html', {'form': form})
 
 def list_projects(request):
@@ -83,11 +89,11 @@ def show_report(request, order_id_hash):
     order_id = signer.unsign(order_id_hash)
 
     if str(order_id).lower().startswith('wo-'):
-        wo_id = str(order_id)
+        project_id = str(order_id)
     else:
-        wo_id = str(ExecutionStats.objects.filter(website_order_id = order_id).latest('exec_date').wo_id)
+        project_id = str(ExecutionStats.objects.filter(website_order_id = order_id).latest('exec_date').project_id)
 
-    project_dir = os.path.join(PROJECT_STORAGE, wo_id)
+    project_dir = os.path.join(PROJECT_STORAGE, project_id)
     out_dirs = []
 
     for out_dir in os.listdir(project_dir):
@@ -99,7 +105,7 @@ def show_report(request, order_id_hash):
     output_dir = os.path.join(project_dir, out_dirs[-1])
 
     if not os.path.isdir(output_dir):
-        return HttpResponse('No result found for Work-Order ' + str(wo_id))
+        return HttpResponse('No result found for Work-Order ' + str(project_id))
 
     total_fastq = 0
     total_fastqc = 0

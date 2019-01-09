@@ -1,7 +1,7 @@
 from django.db import models
 
 class ExecutionStats(models.Model):
-    wo_id = models.CharField(max_length=20)
+    project_id = models.CharField(max_length=20)
 
     ANALYSIS_TYPE = (
         ('FQC', 'FastQC'),
@@ -28,4 +28,4 @@ class ExecutionStats(models.Model):
     details = models.CharField(max_length=256, null=True)
 
     def __str__(self):
-        return 'WO: ' + self.wo_id
+        return 'WO: ' + self.project_id

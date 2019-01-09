@@ -26,7 +26,7 @@ class CoreDataAdmin(admin.ModelAdmin):
     list_display = ('sample_id', 'i7_index_sequence', 'i5_index_sequence')
 
 class ExecutionStatsAdmin(admin.ModelAdmin):
-    list_display = ('wo_id', 'exec_date', 'exec_status', 'fail_reason')
+    list_display = ('project_id', 'exec_date', 'exec_status', 'fail_reason')
     
 admin.site.register(CoreData, CoreDataAdmin)
 admin.site.register(ComponentInformation, ComponentAdmin)

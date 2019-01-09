@@ -117,7 +117,7 @@ class SubmissionExcelParser(object):
 
                 tube_field_dict = {}
 
-                tube_field_dict['wo_id']         = self.wo_id_from_sheet
+                tube_field_dict['project_id']         = self.wo_id_from_sheet
                 tube_field_dict['tube_id']       = self.value_in_column(row, self.tube_coord)
                 tube_field_dict['volume']        = self.value_in_column(row, self.volume_coord)
                 tube_field_dict['concentration'] = self.value_in_column(row, self.conc_coord)
@@ -126,7 +126,7 @@ class SubmissionExcelParser(object):
 
                 component_field_dict = {}
 
-                component_field_dict['wo_id']             = self.wo_id_from_sheet
+                component_field_dict['project_id']             = self.wo_id_from_sheet
                 component_field_dict['sample_id']         = self.value_in_column(row, self.sample_coord)
                 component_field_dict['i7_index_name']     = self.value_in_column(row, self.i7_name_coord)
                 component_field_dict['i7_index_sequence'] = self.value_in_column(row, self.i7_seq_coord)
@@ -152,7 +152,7 @@ class SubmissionExcelParser(object):
 
                 tube_field_dict = {}
 
-                tube_field_dict['wo_id']               = self.wo_id_from_sheet
+                tube_field_dict['project_id']               = self.wo_id_from_sheet
                 tube_field_dict['tube_id']             = self.value_in_column(row, self.tube_coord)
                 tube_field_dict['pool_id']             = self.value_in_column(row, self.pools_coord)
                 tube_field_dict['volume']              = self.value_in_column(row, self.volume_coord)
@@ -169,7 +169,7 @@ class SubmissionExcelParser(object):
 
                 component_field_dict = {}
 
-                component_field_dict['wo_id']             = self.wo_id_from_sheet
+                component_field_dict['project_id']             = self.wo_id_from_sheet
                 component_field_dict['pool_id']           = self.value_in_column(row, self.pool_coord)
                 component_field_dict['sample_id']         = self.value_in_column(row, self.sample_coord)
                 component_field_dict['i7_index_name']     = self.value_in_column(row, self.i7_name_coord)
@@ -264,9 +264,9 @@ class AdmeraFastQParser(object):
     Create database objects out of the information.
     Example file to be parsed is: 17127FL-27-02-bkbk12-A1_S193_L005_R1_001.fastq.gz
     """
-    def __init__(self, fastq_directory, wo_id):
+    def __init__(self, fastq_directory, project_id):
         self.fastq_directory = fastq_directory
-        self.wo_id = wo_id
+        self.project_id = project_id
 
     @transaction.atomic
     def parse_fastq_files(self):
@@ -290,8 +290,8 @@ class AdmeraFastQParser(object):
                     #Save filename
                     core_field_dict['filename'] = fastq_file
 
-                    #Save wo_id from chosen work order object
-                    core_field_dict['wo_id'] = self.wo_id
+                    #Save project_id from chosen work order object
+                    core_field_dict['project_id'] = self.project_id
 
                     top_seq_identifier = ""
                     seq_id_list = []
@@ -330,8 +330,8 @@ class DataComparison(object):
 
     def compare_data(self):
 
-        core_data_objects = CoreData.objects.filter(wo_id=self.wo_to_compare)
-        customer_objects = ComponentInformation.objects.filter(wo_id=self.wo_to_compare)
+        core_data_objects = CoreData.objects.filter(project_id=self.wo_to_compare)
+        customer_objects = ComponentInformation.objects.filter(project_id=self.wo_to_compare)
 
         core_index_list = []
         customer_index_list = []
@@ -381,10 +381,10 @@ class DataComparison(object):
             "Core Indexes with no matches: %s" % self.no_match_core
         ])
 
-def error_logger(error, wo_id):
+def error_logger(error, project_id):
     """Creates database entries for failed / erroneous runs"""
     ExecutionStats.objects.create(
-        wo_id = wo_id,
+        project_id = project_id,
         exec_date = datetime.datetime.now(),
         exec_status = 'FAIL',
         fail_reason = error

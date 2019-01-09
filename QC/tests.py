@@ -24,7 +24,7 @@ class QCTest(TestCase):
 
     def test_input_form(self):
         form_data = {
-        'wo_id' : self.proj_id,
+        'project_id' : self.proj_id,
         'fastq_dir' : os.path.join(PROJECT_STORAGE, self.proj_id)
         }
         form = FastQDirInputForm(data=form_data)
@@ -39,7 +39,7 @@ class QCTest(TestCase):
         self.assertTrue(os.path.isdir(self.runner.fastqc_output_dir))
 
         expected_stat = 'OK'
-        actual_stat = ExecutionStats.objects.get(wo_id=self.proj_id).exec_status
+        actual_stat = ExecutionStats.objects.get(project_id=self.proj_id).exec_status
 
         expected_reports = 2
         actual_reports = 0

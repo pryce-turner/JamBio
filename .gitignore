@@ -1,8 +1,9 @@
 # Project Storage
-JamBio/Project_Storage/*
-!JamBio/Project_Storage/WO-TRANSFER/
-!JamBio/Project_Storage/WO-000000QC/
+*QC_Output*
 JamBio/__pycache__/*
+
+# Migrations
+*/migrations/
 
 # Temporary files
 tmp_*

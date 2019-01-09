@@ -10,12 +10,12 @@ from django.views.generic.edit import FormView
 from django.utils import timezone
 
 from .constants import PROJECT_STORAGE
-from .forms import FastQDirInputForm
+from .forms import ProjectDirInputForm
 from .models import ExecutionStats
 
-def status_logger(wo_id, status, analysis_type, details=None, exec_time=None):
+def status_logger(project_id, status, analysis_type, details=None, exec_time=None):
     ExecutionStats.objects.create(
-        wo_id = wo_id,
+        project_id = project_id,
         analysis_type = analysis_type,
         exec_date = exec_time if exec_time != None else timezone.now(),
         exec_status = status,
@@ -33,10 +33,10 @@ class QC(object):
     runner - see QC.utils.FastQC for details.
     """
 
-    def __init__(self, wo_id, proj_dir, timestamp):
+    def __init__(self, project_id, proj_dir, timestamp):
         """Defines paths and creates directories for analysis output."""
 
-        self.wo_id = wo_id
+        self.project_id = project_id
         self.timestamp = timestamp
         self.project_dir = proj_dir
 
@@ -93,11 +93,11 @@ class QC(object):
 
                     if fastqc_proc.returncode != 0:
                         print(fastqc_proc.std_err)
-                        status_logger(self.wo_id, 'FAIL', 'FQC', details=fastqc_proc.stderr)
+                        status_logger(self.project_id, 'FAIL', 'FQC', details=fastqc_proc.stderr)
                         return fastqc_proc.returncode
 
         print('FastQC successful.')
-        status_logger(self.wo_id, 'OK', 'FQC', details='FastQC successful.')
+        status_logger(self.project_id, 'OK', 'FQC', details='FastQC successful.')
 
         return fastqc_proc.returncode
 
@@ -106,10 +106,10 @@ class QC(object):
         multiqc_command = [
             "multiqc",
             self.multiqc_input_dir,
-            " -o ",
+            "-o",
             self.multiqc_output_dir,
-            " -i ",
-            self.wo_id
+            "-i",
+            self.project_id
             ]
 
         multiqc_proc = subprocess.run(
@@ -120,9 +120,9 @@ class QC(object):
             )
 
         if multiqc_proc.returncode == 0:
-            status_logger(self.wo_id, 'OK', 'MQC', details=multiqc_proc.stdout)
+            status_logger(self.project_id, 'OK', 'MQC', details=multiqc_proc.stdout)
         else:
-            status_logger(self.wo_id, 'FAIL', 'MQC', details=multiqc_proc.stderr)
+            status_logger(self.project_id, 'FAIL', 'MQC', details=multiqc_proc.stderr)
 
         return multiqc_proc.returncode
 
