@@ -23,7 +23,7 @@ from .utils import QC, status_logger
 q = django_rq.get_queue('default')
 signer = Signer()
 
-def run_fastqc_handler(request):
+def run_qc_handler(request):
     """Run FastQC on all the FastQ files in a given directory.
 
     The form collects the fastq directory and associated work order ID.
@@ -48,12 +48,12 @@ def run_fastqc_handler(request):
             except Exception as error:
                 return HttpResponse(error)
 
-            fastqc_result = q.enqueue(runner.run_aggregated_fastqc)
+            fastqc_result = q.enqueue(runner.run_aggregated_qc)
 
             status_logger(
                 wo_id,
                 'ENQD',
-                ExecutionStats.QD,
+                'QD',
                 'Job ID: ' + fastqc_result.id
             )
 
@@ -66,7 +66,7 @@ def run_fastqc_handler(request):
         else:
             return HttpResponse("Form invalid.")
 
-    # if a GET (or any other method) we'll create a blank form
+    # if a GET (or any other method), return a blank form
     else:
         form = FastQDirInputForm()
         return render(request, 'QC/form_generic.html', {'form': form})
@@ -81,7 +81,7 @@ def list_projects(request):
 def show_report(request, order_id_hash):
 
     order_id = signer.unsign(order_id_hash)
-    
+
     if str(order_id).lower().startswith('wo-'):
         wo_id = str(order_id)
     else:

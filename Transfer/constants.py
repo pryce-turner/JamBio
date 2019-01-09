@@ -15,4 +15,4 @@ Storage
 """
 
 ENV_PATH = os.path.abspath(os.path.dirname(__file__))
-PROJECT_STORAGE = os.path.join(ENV_PATH, '../data_services/Project_Storage/')
+PROJECT_STORAGE = os.path.join(ENV_PATH, '../JamBio/Project_Storage/')

@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.views.generic.edit import FormView
 from django.utils import timezone
 
-from .constants import FASTQC_PROG, PROJECT_STORAGE
+from .constants import PROJECT_STORAGE
 from .forms import FastQDirInputForm
 from .models import ExecutionStats
 
@@ -52,7 +52,7 @@ class QC(object):
 
         print('Output directory: ' + self.run_output_dir)
 
-    def run_aggregated_fastqc(self):
+    def run_aggregated_qc(self):
         if self.run_fastqc() == 0:
             return self.run_multiqc()
 
@@ -69,36 +69,60 @@ class QC(object):
                 if filename.endswith('fastq.gz'):
                     fastq_path = os.path.join(root, filename)
 
-                    fastqc_command = str(
-                        FASTQC_PROG + " " + \
-                        fastq_path + \
-                        " -o " + self.fastqc_output_dir)
+                    fastqc_command = [
+                        "fastqc",
+                        fastq_path,
+                        "-o",
+                        self.fastqc_output_dir
+                        ]
 
-                    fastqc_proc = subprocess.run(fastqc_command, shell=True)
+                    try:
+                        fastqc_proc = subprocess.run(
+                            fastqc_command,
+                            stderr=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            encoding='utf-8'
+                            )
+                    except FileNotFoundError:
+                        print(
+                            "No FastQC executable on your system path."
+                            "Please check FastQC is downloaded and "
+                            "callable with 'fastqc'."
+                            )
+                        raise
 
                     if fastqc_proc.returncode != 0:
-                        print('FastQC failed on {}, see logs.'.format(fastq_path))
-                        status_logger(self.wo_id, 'FAIL', ExecutionStats.FASTQC, details='FastQC could not be executed on {}'.format(fastq_path))
+                        print(fastqc_proc.std_err)
+                        status_logger(self.wo_id, 'FAIL', 'FQC', details=fastqc_proc.stderr)
                         return fastqc_proc.returncode
 
         print('FastQC successful.')
-        status_logger(self.wo_id, 'OK', ExecutionStats.FASTQC, details='FastQC successful.')
+        status_logger(self.wo_id, 'OK', 'FQC', details='FastQC successful.')
 
         return fastqc_proc.returncode
 
     def run_multiqc(self):
 
-        multiqc_command = str(
-            "multiqc " + self.multiqc_input_dir + \
-            " -o " + self.multiqc_output_dir + \
-            " -i " + self.wo_id)
+        multiqc_command = [
+            "multiqc",
+            self.multiqc_input_dir,
+            " -o ",
+            self.multiqc_output_dir,
+            " -i ",
+            self.wo_id
+            ]
 
-        multiqc_proc = subprocess.run(multiqc_command, shell=True)
+        multiqc_proc = subprocess.run(
+            multiqc_command,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            encoding='utf-8'
+            )
 
         if multiqc_proc.returncode == 0:
-            status_logger(self.wo_id, 'OK',   ExecutionStats.MULTIQC, details='MultiQC successful.')
+            status_logger(self.wo_id, 'OK', 'MQC', details=multiqc_proc.stdout)
         else:
-            status_logger(self.wo_id, 'FAIL', ExecutionStats.MULTIQC, details='MultiQC failed on {}'.format(self.wo_id))
+            status_logger(self.wo_id, 'FAIL', 'MQC', details=multiqc_proc.stderr)
 
         return multiqc_proc.returncode
 
