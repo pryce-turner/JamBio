@@ -61,7 +61,7 @@ def run_qc_handler(request):
                 'ENQD',
                 'QD',
                 f'Job ID: {fastqc_result.id}'
-            )
+                )
 
             return HttpResponse(
                 "Successfully added files for processing. "
@@ -78,6 +78,7 @@ def run_qc_handler(request):
         return render(request, 'QC/form_generic.html', {'form': form})
 
 def list_projects(request):
+    """Simple function for displaying all projects. """
 
     proj_dirs = []
     for proj_dir in os.listdir(PROJECT_STORAGE):
@@ -85,18 +86,26 @@ def list_projects(request):
     return render(request, 'QC/all_projects.html', {'dirlist' : proj_dirs})
 
 def show_report(request, proj_id_hash):
+    """ Retrieve MultiQC report for a projectself.
 
-    proj_id = signer.unsign(proj_id_hash)
+    Takes a hashed project id, unsigns it and finds project directory.
+    It will then find the most recent analysis performed and return the
+    MultiQC report. If the analysis is still underway, it will return
+    a (rough) percentage complete.
+    """
 
+    project_id = signer.unsign(proj_id_hash)
     project_dir = os.path.join(PROJECT_STORAGE, project_id)
-    out_dirs = []
 
-    sorted_analyses = [dir for dir in os.listdir(project_dir) if dir.startswith('QC_Output')].sort()
+    all_analyses = [dir for dir in os.listdir(project_dir) if dir.startswith('QC_Output')]
 
-    if len(sorted_analyses) == 0:
+    if len(all_analyses) == 0:
         return HttpResponse('No analyses found for Project ' + str(project_id))
-
-    most_recent_analysis = os.path.join(project_dir, sorted_analyses[-1])
+    elif len(all_analyses) == 1:
+        most_recent_analysis = os.path.join(project_dir, all_analyses[0])
+    else:
+        sorted_analyses = all_analyses.sort()
+        most_recent_analysis = os.path.join(project_dir, sorted_analyses[-1])
 
     total_fastq = 0
     total_fastqc = 0
@@ -122,4 +131,3 @@ def show_report(request, proj_id_hash):
         "MultiQC report not yet ready. "
         f"FastQC is still processing with {progress*100} percent completion."
         )
-                    )
