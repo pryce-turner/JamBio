@@ -10,7 +10,7 @@ from django.db import transaction
 from .models import ComponentInformation, TubeInformation, CoreData, ExecutionStats
 from .constants import PROJECT_STORAGE
 from .forms import ImportCompareForm
-from .utils import index_match, parse_illumina_fastq, error_logger, SubmissionExcelParser, AdmeraFastQParser, DataComparison
+from .utils import error_logger, SubmissionExcelParser, FastQParser, DataComparison
 
 def status_logger(project_id, status, details):
     """Creates database entries for failed / erroneous runs"""
@@ -72,21 +72,21 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
         print('Excel parser initialized')
 
         preexisting_wo_objects = (
-            CoreData.objects.filter(project_id=current_sheet.wo_id_from_sheet).count() +
-            ComponentInformation.objects.filter(project_id=current_sheet.wo_id_from_sheet).count() +
-            TubeInformation.objects.filter(project_id=current_sheet.wo_id_from_sheet).count()
+            CoreData.objects.filter(project_id=current_sheet.project_id_from_sheet).count() +
+            ComponentInformation.objects.filter(project_id=current_sheet.project_id_from_sheet).count() +
+            TubeInformation.objects.filter(project_id=current_sheet.project_id_from_sheet).count()
         )
 
         print('Checking for pre-existing WO objects')
         if preexisting_wo_objects > 0:
             if delete_previous == True:
-                delete_preexisting_wo_objects(current_sheet.wo_id_from_sheet)
+                delete_preexisting_wo_objects(current_sheet.project_id_from_sheet)
             else:
-                status_logger(current_sheet.wo_id_from_sheet, 'FAIL', "Duplicate Work Order ID")
+                status_logger(current_sheet.project_id_from_sheet, 'FAIL', "Duplicate Work Order ID")
                 message = (
                     "There are already %i database entries for Work Order: %s. "
                     "You can delete them by checking the box on the form."
-                    % (preexisting_wo_objects, current_sheet.wo_id_from_sheet)
+                    % (preexisting_wo_objects, current_sheet.project_id_from_sheet)
                     )
                 return message
 
@@ -94,7 +94,7 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
             current_sheet.find_columns()
         except Exception as fail:
             print(fail)
-            fail.args = (current_sheet.wo_id_from_sheet, fail.args, 'Failed finding columns.')
+            fail.args = (current_sheet.project_id_from_sheet, fail.args, 'Failed finding columns.')
             raise
 
         print('Found columns.')
@@ -105,7 +105,7 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
                 print('Individual library columns extracted.')
             except Exception as fail:
                 print(fail)
-                fail.args = (current_sheet.wo_id_from_sheet, fail.args, 'Failed parsing individual libraries.')
+                fail.args = (current_sheet.project_id_from_sheet, fail.args, 'Failed parsing individual libraries.')
                 raise
 
 
@@ -115,38 +115,38 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
                 print('Pooled library columns extracted.')
             except Exception as fail:
                 print(fail)
-                fail.args = (current_sheet.wo_id_from_sheet, fail.args, 'Failed parsing pooled libraries.')
+                fail.args = (current_sheet.project_id_from_sheet, fail.args, 'Failed parsing pooled libraries.')
                 raise
 
         # Create fastQ parsing instance
         try:
-            importer = AdmeraFastQParser(fastq_directory, current_sheet.wo_id_from_sheet)
+            importer = FastQParser(fastq_directory, current_sheet.project_id_from_sheet)
         except Exception as fail:
             print(fail)
-            fail.args = (current_sheet.wo_id_from_sheet, fail.args, 'Failed to initialize AdmeraFastQ parser')
+            fail.args = (current_sheet.project_id_from_sheet, fail.args, 'Failed to initialize FastQ parser')
             raise
 
         try:
             importer.parse_fastq_files() > 0
         except Exception as fail:
             print(fail)
-            fail.args = (current_sheet.wo_id_from_sheet, fail.args, 'No fastq files in directory: {}'.format(fastq_directory))
+            fail.args = (current_sheet.project_id_from_sheet, fail.args, 'No fastq files in directory: {}'.format(fastq_directory))
             raise
 
         # Create comparison instance
         try:
-            comparer = DataComparison(current_sheet.wo_id_from_sheet)
+            comparer = DataComparison(current_sheet.project_id_from_sheet)
         except Exception as fail:
             print(fail)
-            fail.args = (current_sheet.wo_id_from_sheet, fail.args, 'Failed to initialize DataComparison object')
+            fail.args = (current_sheet.project_id_from_sheet, fail.args, 'Failed to initialize DataComparison object')
             raise
 
         try:
             comparer.compare_data()
-            status_logger(current_sheet.wo_id_from_sheet, 'OK', comparer.comparison_output)
+            status_logger(current_sheet.project_id_from_sheet, 'OK', comparer.comparison_output)
         except Exception as fail:
             print(fail)
-            fail.args = (current_sheet.wo_id_from_sheet.encode, fail.args, "Failed on 'compare_data' method")
+            fail.args = (current_sheet.project_id_from_sheet.encode, fail.args, "Failed on 'compare_data' method")
             raise
 
         return comparer.comparison_output
@@ -156,7 +156,7 @@ def handle_uploaded_file(file_, proj_dir):
     newPath = os.path.join(
         proj_dir, 'Sample_Sheet',
         datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S') + '.xlsx'
-    )   
+    )
 
     with open(newPath, 'wb+') as destination:
         for chunk in file_.chunks():

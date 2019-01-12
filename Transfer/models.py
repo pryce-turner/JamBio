@@ -5,7 +5,11 @@ from .constants import PROJECT_STORAGE
 class TubeInformation(models.Model):
     project_id = models.CharField(max_length=20)
     tube_id = models.CharField(max_length=40)
-    pool_id = models.CharField(max_length=30, help_text="The name of the pooled library, may be a sample ID or tube ID", null=True)
+    pool_id = models.CharField(
+        max_length=30,
+        help_text=(
+            "The name of the pooled library, may be a sample ID or tube ID"),
+        null=True)
     volume = models.CharField(max_length=40, null=True)
     concentration = models.CharField(max_length=40, null=True)
     total_amount = models.CharField(max_length=40, null=True)
@@ -18,8 +22,16 @@ class TubeInformation(models.Model):
 
 class ComponentInformation(models.Model):
     project_id = models.CharField(max_length=20)
-    pool_id = models.CharField(max_length=30, help_text="The name of the pooled library, may be a sample ID or tube ID", null=True)
-    sample_id = models.CharField(max_length=30, help_text="Individual component identifiers, may be index names or other customer provided name.")
+    pool_id = models.CharField(
+        max_length=30,
+        help_text=(
+            "The name of the pooled library, may be a sample ID or tube ID"),
+        null=True)
+    sample_id = models.CharField(
+        max_length=30,
+        help_text=(
+            "Individual component identifiers, "
+            "may be index names or other customer provided name."))
     i7_index_name = models.CharField(max_length=30, null=True)
     i5_index_name = models.CharField(max_length=30, null=True)
     i7_index_sequence = models.CharField(max_length=40, null=True)
@@ -30,9 +42,21 @@ class ComponentInformation(models.Model):
 
 class CoreData(models.Model):
     project_id = models.CharField(max_length=20)
-    pool_id = models.CharField(max_length=30, help_text="The name of the pooled library, may be a sample ID or tube ID", null = True)
-    sample_id = models.CharField(max_length=30, help_text="Individual component identifiers, should map to customer provided name.")
-    flowcell_id = models.CharField(max_length=40, help_text="Unique illumina flowcell the sample was run on.")
+    pool_id = models.CharField(
+        max_length=30,
+        help_text=(
+            "The name of the pooled library, may be a sample ID or tube ID"),
+        null = True)
+    sample_id = models.CharField(
+        max_length=30,
+        help_text=(
+            "Individual component identifiers, "
+            "should map to customer provided name."))
+    flowcell_id = models.CharField(
+        max_length=40,
+        help_text=(
+            "Unique illumina flowcell the sample was run on.")
+        )
     lane = models.CharField(max_length=30)
     read = models.CharField(max_length=30)
     i7_index_sequence = models.CharField(max_length=40)
@@ -58,4 +82,4 @@ class ExecutionStats(models.Model):
     fail_reason = models.TextField()
 
     def __str__(self):
-        return 'WO: ' + self.project_id
+        return 'Project ID: ' + self.project_id
