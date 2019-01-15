@@ -86,6 +86,8 @@ class SubmissionExcelParser(object):
         data_start_row = self.header_coordinates[INDIV_ANCHOR][1] + 2
         for row in range(data_start_row, max_sheet_length):
 
+            if indiv_cell_val(STR_TUBE_ID) == None: continue
+
             tube_field_dict = {}
 
             tube_field_dict['project_id']    = self.project_id_from_sheet
@@ -93,6 +95,7 @@ class SubmissionExcelParser(object):
             tube_field_dict['volume']        = indiv_cell_val(STR_VOLUME)
             tube_field_dict['concentration'] = indiv_cell_val(STR_CONCENTRATION)
 
+            print(tube_field_dict)
             data = TubeInformation.objects.create(**tube_field_dict)
 
             component_field_dict = {}
@@ -104,6 +107,7 @@ class SubmissionExcelParser(object):
             component_field_dict['i5_index_name']     = indiv_cell_val(STR_I5_INDEX_NAME)
             component_field_dict['i5_index_sequence'] = indiv_cell_val(STR_I5_INDEX_SEQ)
 
+            print(component_field_dict)
             data = ComponentInformation.objects.create(**component_field_dict)
 
     @transaction.atomic

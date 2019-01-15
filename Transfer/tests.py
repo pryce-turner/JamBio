@@ -166,7 +166,7 @@ class IndividualSubmissionExcelParserTest(TestCase):
     def test_init(self):
 
         self.assertEqual(self.parser.submission_type, 'Individual Libraries')
-        self.assertEqual(self.parser.project_id_from_sheet, '123456')
+        self.assertEqual(self.parser.project_id_from_sheet, 123456)
 
     def test_indiv_lib_column_coords(self):
 
@@ -191,7 +191,7 @@ class IndividualSubmissionExcelParserTest(TestCase):
 
     def test_tube_objects_created(self):
 
-        # Number of non-example rows in the "Pooled Libraries" sheet
+        # Number of non-example rows in the "Individual Libraries" sheet
         expected_tube_objects = 3
         expected_component_objects = 3
 
