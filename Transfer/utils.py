@@ -44,7 +44,7 @@ class SubmissionExcelParser(object):
 
                 if gen_val == STR_SAMPLE_TYPE:
                     self.tube_type_coord = column, row + 1
-                if gen_val == STR_NGX_BIO_WO:
+                if gen_val == STR__BIO_WO:
                     self.wo_id_coord = column, row + 1
 
         self.wo_id_from_sheet = self.general_info_ws.cell(
@@ -64,7 +64,7 @@ class SubmissionExcelParser(object):
         # column_name_mappings = {
         #     'STR_INDIVIDUAL_LIB' : 'Individual Libraries'
         #     'STR_SAMPLE_TYPE'    : 'Sample Type:'
-        #     'STR_NGX_BIO_WO'     : 'NGX Bio WO#:'
+        #     'STR__BIO_WO'     : ' Bio WO#:'
         #     'STR_TUBE_ID'        : 'Tube ID'
         #     'STR_POOL_NAMES'     : 'Pool Names' # Pools in 'Pool Information' table
         #     'STR_POOL_ID'        : 'Pool Name'  # Pools in 'Indexing Information' table

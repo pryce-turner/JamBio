@@ -18,7 +18,7 @@ class ImportAndCompareFormTest(TestCase):
         self.assertTrue(form.fields['project_directory_pulldown'].label == 'Core Data Folder' or form.fields['project_directory_pulldown'].label == None)
 
     def test_file_upload(self):
-        test_sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', 'NGX Bio Sample Details Form - dd06,bbk12.xlsx')
+        test_sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', ' Bio Sample Details Form - dd06,bbk12.xlsx')
 
         with open(test_sheet_path, 'rb') as f:
             form = ImportCompareForm(
@@ -43,7 +43,7 @@ class PoolSubmissionExcelParserTest(TestCase):
 
     def setUp(self):
 
-        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'NGX Bio Sample Details Form - Pool.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', ' Bio Sample Details Form - Pool.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_pool_submission()
@@ -156,7 +156,7 @@ class IndividualSubmissionExcelParserTest(TestCase):
 
     def setUp(self):
 
-        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'NGX Bio Sample Details Form - Indiv.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', ' Bio Sample Details Form - Indiv.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_individual_library_submission()
@@ -321,7 +321,7 @@ class CompareDataTest(TestCase):
 
     def setUp(self):
 
-        sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', 'NGX Bio Sample Details Form - dd06,bbk12.xlsx')
+        sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', ' Bio Sample Details Form - dd06,bbk12.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_pool_submission()
