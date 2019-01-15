@@ -32,19 +32,19 @@ class PoolSubmissionExcelParserTest(TestCase):
 
     # Values from 'Pooled Library' sheet of testing spreadsheet.
     pool_values = [
-        ['Tube 1','Pool A', 10, 10, 1,'Qubit','Water','Tater', 1],
-        ['Tube 2','Pool B', 20, 20, 2,'Qubit','Water','Tater', 2]
+        [1,'Pool1',11,51,0.1,'Qubit1','water1','human1',1],
+        [2,'Pool2',12,52,0.2,'Qubit2','water2','human2',2]
     ]
 
     component_values = [
-        ['Pool A','SPUD1','Nextera XT', 300, 350,'N701','GGGGGGG','S301','AAAAAAAA','High 1'],
-        ['Pool B','SPUD2','Nextera XT', 300, 350,'N702','CCCCCCCC','S302','TTTTTTTTT','High 2'],
-        ['Pool B','SPUD3','Nextera XT', 300, 350,'N703','GGGGGGG','S303','AAAAAAAA','High 3']
+        ['Pool1','SAM1','Nextera XT 1',301,351,'ALL-C','CCCCCCCC','ALL-G','GGGGGGGG','High'],
+        ['Pool2','SAM2','Nextera XT 2',302,352,'ALL-A','AAAAAAA','ALL-T','TTTTTTTT','High'],
+        ['Pool3','SAM3','Nextera XT 3',302,353,'ALL-T','TTTTTTT','ALL-A','AAAAAAA','High']
     ]
 
     def setUp(self):
 
-        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', ' Bio Sample Details Form - Pool.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'Sample_Submission_Sheet_Pool.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_pool_submission()
@@ -52,7 +52,7 @@ class PoolSubmissionExcelParserTest(TestCase):
     def test_init(self):
 
         self.assertEqual(self.parser.submission_type, 'Pooled Libraries')
-        self.assertEqual(self.parser.project_id_from_sheet, 'WO-0000SPUD')
+        self.assertEqual(self.parser.project_id_from_sheet, 123456)
 
     def test_pool_column_coords(self):
 
@@ -71,20 +71,20 @@ class PoolSubmissionExcelParserTest(TestCase):
         i5_name_coord = (9,35)
         i5_seq_coord = (10,35)
 
-        self.assertEqual(tube_coord, self.parser.tube_coord)
-        self.assertEqual(pools_coord, self.parser.pools_coord)
-        self.assertEqual(volume_coord, self.parser.volume_coord)
-        self.assertEqual(conc_coord, self.parser.conc_coord)
-        self.assertEqual(amount_coord, self.parser.amount_coord)
-        self.assertEqual(quant_coord, self.parser.quant_coord)
-        self.assertEqual(buff_coord, self.parser.buff_coord)
-        self.assertEqual(org_coord, self.parser.org_coord)
-        self.assertEqual(pool_coord, self.parser.pool_coord)
-        self.assertEqual(sample_coord, self.parser.sample_coord)
-        self.assertEqual(i7_name_coord, self.parser.i7_name_coord)
-        self.assertEqual(i5_name_coord, self.parser.i5_name_coord)
-        self.assertEqual(i7_seq_coord, self.parser.i7_seq_coord)
-        self.assertEqual(i5_seq_coord, self.parser.i5_seq_coord)
+        self.assertEqual(tube_coord, self.parser.header_coordinates[STR_TUBE_ID])
+        self.assertEqual(pools_coord, self.parser.header_coordinates[STR_POOL_NAMES])
+        self.assertEqual(volume_coord, self.parser.header_coordinates[STR_VOLUME])
+        self.assertEqual(conc_coord, self.parser.header_coordinates[STR_CONCENTRATION])
+        self.assertEqual(amount_coord, self.parser.header_coordinates[STR_AMOUNT])
+        self.assertEqual(quant_coord, self.parser.header_coordinates[STR_QUANTITATION])
+        self.assertEqual(buff_coord, self.parser.header_coordinates[STR_BUFFER])
+        self.assertEqual(org_coord, self.parser.header_coordinates[STR_ORGANISM])
+        self.assertEqual(pool_coord, self.parser.header_coordinates[STR_POOL_ID])
+        self.assertEqual(sample_coord, self.parser.header_coordinates[STR_LIBRARY_ID])
+        self.assertEqual(i7_name_coord, self.parser.header_coordinates[STR_I7_INDEX_NAME])
+        self.assertEqual(i7_seq_coord, self.parser.header_coordinates[STR_I7_INDEX_SEQ])
+        self.assertEqual(i5_name_coord, self.parser.header_coordinates[STR_I5_INDEX_NAME])
+        self.assertEqual(i5_seq_coord, self.parser.header_coordinates[STR_I5_INDEX_SEQ])
 
     def test_tube_objects_created(self):
 

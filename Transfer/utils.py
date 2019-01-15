@@ -31,22 +31,21 @@ class SubmissionExcelParser(object):
         for row in range(1, general_sheet_length):
             for column in range(1, general_sheet_width):
 
-                gen_val = cell_value(
-                    column,
-                    row,
-                    self.general_info_ws
-                    )
+                gen_val = self.general_info_ws.cell(
+                    row=row,
+                    column=column
+                    ).value
 
                 if gen_val == STR_SAMPLE_TYPE:
-                    self.submission_type = cell_value(
-                        column,
-                        row + 1,
-                        worksheet=self.general_info_ws)
+                    self.submission_type = self.general_info_ws.cell(
+                        row=row + 1,
+                        column=column
+                        ).value
                 if gen_val == STR_PROJECT_ID:
-                    self.project_id_from_sheet = cell_value(
-                        column,
-                        row + 1,
-                        worksheet=self.general_info_ws)
+                    self.project_id_from_sheet = self.general_info_ws.cell(
+                        row=row + 1,
+                        column=column
+                        ).value
 
 
     def find_columns(self):
@@ -59,12 +58,17 @@ class SubmissionExcelParser(object):
             for column in range(1, max_sheet_width):
 
                 for header in column_headers:
-                    if cell_value(
-                        column,
-                        row,
-                        self.submission_detail_ws
-                        ) == header:
-                        self.header_coordinates[header] = (column, row)
+                    if self.submission_detail_ws.cell(
+                        row=row,
+                        column=column
+                        ).value == header:
+                            self.header_coordinates[header] = (column, row)
+
+    def value_in_column(self, row, column_header):
+        return self.submission_detail_ws.cell(
+        column=self.header_coordinates[column_header][0],
+        row=row
+        ).value
 
     @transaction.atomic
     def parse_individual_library_submission(self):
@@ -77,37 +81,29 @@ class SubmissionExcelParser(object):
         empty cells in the sample column.
         """
 
-        def indiv_cell_val(header):
-            return cell_value(
-                self.header_coordinates[header][0],
-                row,
-                self.submission_detail_ws)
-
         data_start_row = self.header_coordinates[INDIV_ANCHOR][1] + 2
         for row in range(data_start_row, max_sheet_length):
 
-            if indiv_cell_val(STR_TUBE_ID) == None: continue
+            if self.value_in_column(row, STR_TUBE_ID) == None: break
 
             tube_field_dict = {}
 
             tube_field_dict['project_id']    = self.project_id_from_sheet
-            tube_field_dict['tube_id']       = indiv_cell_val(STR_TUBE_ID)
-            tube_field_dict['volume']        = indiv_cell_val(STR_VOLUME)
-            tube_field_dict['concentration'] = indiv_cell_val(STR_CONCENTRATION)
+            tube_field_dict['tube_id']       = self.value_in_column(row, STR_TUBE_ID)
+            tube_field_dict['volume']        = self.value_in_column(row, STR_VOLUME)
+            tube_field_dict['concentration'] = self.value_in_column(row, STR_CONCENTRATION)
 
-            print(tube_field_dict)
             data = TubeInformation.objects.create(**tube_field_dict)
 
             component_field_dict = {}
 
             component_field_dict['project_id']        = self.project_id_from_sheet
-            component_field_dict['sample_id']         = indiv_cell_val(STR_LIBRARY_ID)
-            component_field_dict['i7_index_name']     = indiv_cell_val(STR_I7_INDEX_NAME)
-            component_field_dict['i7_index_sequence'] = indiv_cell_val(STR_I7_INDEX_SEQ)
-            component_field_dict['i5_index_name']     = indiv_cell_val(STR_I5_INDEX_NAME)
-            component_field_dict['i5_index_sequence'] = indiv_cell_val(STR_I5_INDEX_SEQ)
+            component_field_dict['sample_id']         = self.value_in_column(row, STR_LIBRARY_ID)
+            component_field_dict['i7_index_name']     = self.value_in_column(row, STR_I7_INDEX_NAME)
+            component_field_dict['i7_index_sequence'] = self.value_in_column(row, STR_I7_INDEX_SEQ)
+            component_field_dict['i5_index_name']     = self.value_in_column(row, STR_I5_INDEX_NAME)
+            component_field_dict['i5_index_sequence'] = self.value_in_column(row, STR_I5_INDEX_SEQ)
 
-            print(component_field_dict)
             data = ComponentInformation.objects.create(**component_field_dict)
 
     @transaction.atomic
@@ -121,38 +117,40 @@ class SubmissionExcelParser(object):
          empty cells in the sample column.
         """
 
-        for row in range(self.tube_coord[1] + 2, self.tube_coord[1]+20):
+        data_start_row = self.header_coordinates[POOL_ANCHOR][1] + 2
+        for row in range(data_start_row, max_sheet_length):
 
-            if self.value_in_column(row, self.tube_coord):
+            if self.value_in_column(row, STR_TUBE_ID) == None: break
 
-                tube_field_dict = {}
+            tube_field_dict = {}
 
-                tube_field_dict['project_id']               = self.project_id_from_sheet
-                tube_field_dict['tube_id']             = self.value_in_column(row, self.tube_coord)
-                tube_field_dict['pool_id']             = self.value_in_column(row, self.pools_coord)
-                tube_field_dict['volume']              = self.value_in_column(row, self.volume_coord)
-                tube_field_dict['concentration']       = self.value_in_column(row, self.conc_coord)
-                tube_field_dict['total_amount']        = self.value_in_column(row, self.amount_coord)
-                tube_field_dict['quantitation_method'] = self.value_in_column(row, self.quant_coord)
-                tube_field_dict['buffer']              = self.value_in_column(row, self.buff_coord)
-                tube_field_dict['organism']            = self.value_in_column(row, self.org_coord)
+            tube_field_dict['project_id']          = self.project_id_from_sheet
+            tube_field_dict['tube_id']             = self.value_in_column(row, STR_TUBE_ID)
+            tube_field_dict['pool_id']             = self.value_in_column(row, STR_POOL_NAMES)
+            tube_field_dict['volume']              = self.value_in_column(row, STR_VOLUME)
+            tube_field_dict['concentration']       = self.value_in_column(row, STR_CONCENTRATION)
+            tube_field_dict['total_amount']        = self.value_in_column(row, STR_AMOUNT)
+            tube_field_dict['quantitation_method'] = self.value_in_column(row, STR_QUANTITATION)
+            tube_field_dict['buffer']              = self.value_in_column(row, STR_BUFFER)
+            tube_field_dict['organism']            = self.value_in_column(row, STR_ORGANISM)
 
-                data = TubeInformation.objects.create(**tube_field_dict)
+            data = TubeInformation.objects.create(**tube_field_dict)
 
-        for row in range(self.pool_coord[1] + 2, self.pool_coord[1]+500):
-            if self.value_in_column(row, self.sample_coord):
+        data_start_row = self.header_coordinates[INDEX_ANCHOR][1] + 2
+        for row in range(data_start_row, max_sheet_length):
 
-                component_field_dict = {}
+            if self.value_in_column(row, STR_POOL_ID) == None: break
+            component_field_dict = {}
 
-                component_field_dict['project_id']             = self.project_id_from_sheet
-                component_field_dict['pool_id']           = self.value_in_column(row, self.pool_coord)
-                component_field_dict['sample_id']         = self.value_in_column(row, self.sample_coord)
-                component_field_dict['i7_index_name']     = self.value_in_column(row, self.i7_name_coord)
-                component_field_dict['i7_index_sequence'] = self.value_in_column(row, self.i7_seq_coord)
-                component_field_dict['i5_index_name']     = self.value_in_column(row, self.i5_name_coord)
-                component_field_dict['i5_index_sequence'] = self.value_in_column(row, self.i5_seq_coord)
+            component_field_dict['project_id']        = self.project_id_from_sheet
+            component_field_dict['pool_id']           = self.value_in_column(row, STR_POOL_ID)
+            component_field_dict['sample_id']         = self.value_in_column(row, STR_LIBRARY_ID)
+            component_field_dict['i7_index_name']     = self.value_in_column(row, STR_I7_INDEX_NAME)
+            component_field_dict['i7_index_sequence'] = self.value_in_column(row, STR_I7_INDEX_SEQ)
+            component_field_dict['i5_index_name']     = self.value_in_column(row, STR_I5_INDEX_NAME)
+            component_field_dict['i5_index_sequence'] = self.value_in_column(row, STR_I5_INDEX_SEQ)
 
-                data = ComponentInformation.objects.create(**component_field_dict)
+            data = ComponentInformation.objects.create(**component_field_dict)
 
 class FastQParser(object):
     """Function to parse the file names and content of Fastq files.
@@ -362,6 +360,3 @@ def error_logger(error, project_id):
         exec_status = 'FAIL',
         fail_reason = error
     )
-
-def cell_value(column, row, worksheet):
-    return worksheet.cell(column=column, row=row).value
