@@ -9,7 +9,7 @@ from django.utils import timezone
 from .views import QC
 from .models import ExecutionStats
 from .constants import PROJECT_STORAGE
-from .forms import FastQDirInputForm
+from .forms import ProjectDirInputForm
 
 class QCTest(TestCase):
 
@@ -23,11 +23,8 @@ class QCTest(TestCase):
         self.assertTrue(os.path.isdir(self.runner.run_output_dir))
 
     def test_input_form(self):
-        form_data = {
-        'project_id' : self.proj_id,
-        'fastq_dir' : os.path.join(PROJECT_STORAGE, self.proj_id)
-        }
-        form = FastQDirInputForm(data=form_data)
+        form_data = {'project_dir' : os.path.join(PROJECT_STORAGE, self.proj_id)}
+        form = ProjectDirInputForm(data=form_data)
         self.assertTrue(form.is_valid())
 
     def test_qc_run(self):

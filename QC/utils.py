@@ -14,12 +14,13 @@ from .forms import ProjectDirInputForm
 from .models import ExecutionStats
 
 def status_logger(project_id, status, analysis_type, details=None, exec_time=None):
+    """Creates a timestamped log for every step of the analysis."""
     ExecutionStats.objects.create(
         project_id = project_id,
-        analysis_type = analysis_type,
-        exec_date = exec_time if exec_time != None else timezone.now(),
         exec_status = status,
-        details = details
+        analysis_type = analysis_type,
+        details = details,
+        exec_date = exec_time if exec_time != None else timezone.now()
     )
 
 class QC(object):
@@ -50,18 +51,20 @@ class QC(object):
         os.mkdir(self.multiqc_output_dir)
         os.mkdir(self.fastqc_output_dir)
 
-        print('Output directory: ' + self.run_output_dir)
+        print(f"Output Directory: {self.run_output_dir}")
 
     def run_aggregated_qc(self):
+        """Aggregation function for calling analyses together. """
         if self.run_fastqc() == 0:
             return self.run_multiqc()
 
         return 1 # Failure
 
     def run_fastqc(self):
-        """ Runs FastQC from program location specified in 'constants'
-        Make sure the path is correctly set and you've granted it exec
-        permissions
+        """ Runs fastqc on all 'fastq.gz' files in given directory.
+
+        FastQC has to be callable with 'fastqc' on your system for the
+        subprocess call to work.
         """
 
         for root, dirs, files in os.walk(self.project_dir):
@@ -102,6 +105,7 @@ class QC(object):
         return fastqc_proc.returncode
 
     def run_multiqc(self):
+        """Runs MultiQC on the fastqc files generated during this analysis."""
 
         multiqc_command = [
             "multiqc",
@@ -128,6 +132,8 @@ class QC(object):
 
     @staticmethod
     def display_multiqc(path):
+        """Opens and serves a MultiQC report."""
+
         myfile = open(path)
         data = myfile.read()
         return HttpResponse(data)
