@@ -2,14 +2,15 @@ import os
 
 """
 Directory tree:
-Storage
+
+Project_Storage
     WO-000TEST
-        Samples Sheet
+        Sample_Sheet
         FastQ_Files
-        QC: 2018-10-08-16-05-10
+        QC_Output: 2018-10-08-16-05-10
             FastQC
             MultiQC
-        QC: 2018-10-08-16-05-10
+        QC_Output: 2018-10-08-16-05-10
             FastQC
             MultiQC
 """

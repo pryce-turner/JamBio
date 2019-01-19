@@ -170,7 +170,7 @@ class FastQParser(object):
             if base not in allowed_characters:
                 raise Exception(f'Non-base character in index: {base}')
 
-    def parse_illumina_fastq_content(fastq_file_obj, core_field_dict):
+    def parse_illumina_fastq_content(self, fastq_file_obj, core_field_dict):
         """Parser for the contents of any modern Illumina fastQ file
         'top_seq_identifier' refers to the first sequence identifier, of the form:
         @E00558:209:HMKJCCCXY:5:1101:10044:1379 1:N:0:NCTCGCTA+NTAGAGAG
@@ -199,14 +199,14 @@ class FastQParser(object):
 
                 i7_index_seq = seq_id_list[-1].split("+")[0].rstrip('\r\n ')
                 try:
-                    index_match(i7_index_seq)
+                    self.index_match(i7_index_seq)
                 except:
                     raise
                 i7_indexes.append(i7_index_seq)
 
                 i5_index_seq = seq_id_list[-1].split("+")[1].rstrip('\r\n ')
                 try:
-                    index_match(i5_index_seq)
+                    self.index_match(i5_index_seq)
                 except:
                     raise
                 i5_indexes.append(i5_index_seq)
@@ -214,7 +214,7 @@ class FastQParser(object):
             else:
                 i7_index_seq = seq_id_list[-1].rstrip('\r\n ')
                 try:
-                    index_match(i7_index_seq)
+                    self.index_match(i7_index_seq)
                 except:
                     raise
                 i7_indexes.append(i7_index_seq)
@@ -241,7 +241,7 @@ class FastQParser(object):
         return core_field_dict
 
     @transaction.atomic
-    def parse_fastq_filenames(self):
+    def parse_fastq_files(self):
 
         numof_files_parsed = 0
 
@@ -254,7 +254,7 @@ class FastQParser(object):
 
                     # Function defined above
                     try:
-                        parse_illumina_fastq(fastq_file_obj, core_field_dict)
+                        self.parse_illumina_fastq_content(fastq_file_obj, core_field_dict)
                         numof_files_parsed += 1
                     except:
                         raise
@@ -280,9 +280,7 @@ class FastQParser(object):
                     if illumina_split[-3].startswith('L'):
                         core_field_dict['lane'] = illumina_split[-3]
                     # Extract sample ID
-                    core_field_dict['sample_id'] = _split[-1]
-                    # Extract pool ID
-                    core_field_dict['pool_id'] = _split[-2]
+                    core_field_dict['sample_id'] = illumina_split[0]
 
                     ## Create and populate a model object for this fastq file
                     data = CoreData.objects.create(**core_field_dict)

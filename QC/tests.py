@@ -23,7 +23,7 @@ class QCTest(TestCase):
         self.assertTrue(os.path.isdir(self.runner.run_output_dir))
 
     def test_input_form(self):
-        form_data = {'project_dir' : os.path.join(PROJECT_STORAGE, self.proj_id)}
+        form_data = {'project_directory' : os.path.join(PROJECT_STORAGE, self.proj_id)}
         form = ProjectDirInputForm(data=form_data)
         self.assertTrue(form.is_valid())
 

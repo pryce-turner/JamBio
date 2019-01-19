@@ -1,5 +1,7 @@
 import datetime
 import os
+import shutil
+
 from django.shortcuts import render
 from django.views import generic
 from django.views.generic.list import ListView
@@ -12,35 +14,34 @@ from .constants import PROJECT_STORAGE
 from .forms import ImportCompareForm
 from .utils import error_logger, SubmissionExcelParser, FastQParser, DataComparison
 
-def status_logger(project_id, status, details):
-    """Creates database entries for failed / erroneous runs"""
-    ExecutionStats.objects.create(
-        project_id = project_id,
-        exec_date = datetime.datetime.now(),
-        exec_status = status,
-        fail_reason = details
-    )
-
 def import_and_compare_handler(request):
 
     if request.method == 'POST':
 
-        project_directory = ''
-        fastq_directory = ''
+        project_dir = ''
+        fastq_dir = ''
         uploadedFilePath = None
 
         form = ImportCompareForm(request.POST,
                                  request.FILES)
         # check whether it's valid:
         if form.is_valid():
-            fastq_directory = form.cleaned_data['fastq_directory_direct_path']
+            if form.cleaned_data['project_directory']:
+                project_dir = form.cleaned_data['project_directory']
+                fastq_dir = os.path.join(project_dir, 'FastQ_Files')
+            elif form.cleaned_data['outside_directory']:
+                fastq_dir = form.cleaned_data['outside_directory']
 
-            if fastq_directory == None or len(fastq_directory) == 0:
-                project_directory = form.cleaned_data['project_directory_pulldown']
-                fastq_directory = os.path.join(project_directory, 'FastQ_Files')
+            if not os.path.isdir(fastq_dir):
+                return HttpResponse(f"Invalid Core Facility Data Path: {fastq_dir}")
 
-            if not os.path.isdir(fastq_directory):
-                return HttpResponse('Invalid Core Facility Data Path: ' + fastq_directory, content_type="text/plain")
+            fastq_in_dir = 0
+            for root, dirs, files in os.walk(fastq_dir):
+                for file in files:
+                    if file.endswith('.fastq.gz'):
+                        fastq_in_dir += 1
+            if fastq_in_dir == 0:
+                return HttpResponse(f"No FastQ files in directory {fastq_dir}")
 
             submissionSheetFile = form.cleaned_data['sub_sheet']
             delete_previous     = form.cleaned_data['delete_previous']
@@ -49,8 +50,8 @@ def import_and_compare_handler(request):
             try:
                 comparison_output = import_and_compare(submissionSheetFile, fastq_directory, delete_previous)
             except Exception as fail:
-                status_logger(fail.args[0], 'FAIL', (fail.args[1] + fail.args[2]))
-                return HttpResponse('Run failed because of {}'.format(fail.args), content_type="text/plain")
+                error_logger(fail.args[0], 'FAIL', (fail.args[1] + fail.args[2]))
+                return HttpResponse(f"Run failed because of {fail.args}")
 
             return HttpResponse(comparison_output, content_type="text/plain")
     else:
@@ -82,11 +83,11 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
             if delete_previous == True:
                 delete_preexisting_wo_objects(current_sheet.project_id_from_sheet)
             else:
-                status_logger(current_sheet.project_id_from_sheet, 'FAIL', "Duplicate Work Order ID")
+                error_logger(current_sheet.project_id_from_sheet, 'FAIL', "Duplicate Project ID")
                 message = (
-                    "There are already %i database entries for Work Order: %s. "
+                    f"There are already {preexisting_wo_objects} "
+                    f"database entries for Work Order: {current_sheet.project_id_from_sheet}. "
                     "You can delete them by checking the box on the form."
-                    % (preexisting_wo_objects, current_sheet.project_id_from_sheet)
                     )
                 return message
 
@@ -127,7 +128,7 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
             raise
 
         try:
-            importer.parse_fastq_files() > 0
+            importer.parse_fastq_filenames() > 0
         except Exception as fail:
             print(fail)
             fail.args = (current_sheet.project_id_from_sheet, fail.args, 'No fastq files in directory: {}'.format(fastq_directory))
@@ -143,7 +144,7 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
 
         try:
             comparer.compare_data()
-            status_logger(current_sheet.project_id_from_sheet, 'OK', comparer.comparison_output)
+            error_logger(current_sheet.project_id_from_sheet, 'OK', comparer.comparison_output)
         except Exception as fail:
             print(fail)
             fail.args = (current_sheet.project_id_from_sheet.encode, fail.args, "Failed on 'compare_data' method")

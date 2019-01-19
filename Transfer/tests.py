@@ -253,22 +253,10 @@ class IndividualSubmissionExcelParserTest(TestCase):
 
 class ImportFastQTest(TestCase):
 
-    # core_values = [
-    #     ['dd06', 'A3', 701, 'NCGTAGTA', 500, 'NTAGAGAG'],
-    #     ['bkbk12', 'A1', 703, 'NCTCGCTA', 500, 'NTAGAGAG'],
-    #     ['bkbk12', 'A2', 704, 'NGAGCTAC', 500, 'NTAGAGAG'],
-    #     ['bkbk12', 'A3', 705, 'NGGAGCCT', 500, 'NTAGAGAG'],
-    #     ['bkbk12', 'A4', 705, 'NGGAGCCT', 500, 'NTAGAGAG'],
-    #     ['dd06', 'A4', 702, 'NCCTGAGC', 501, 'NTAGTCGA'],
-    #     ['dd06', 'A2', 700, 'NGTACTAG', 501, 'NTAGTCGA'],
-    # ]
-
-
     fastq_files_in_folder = 1
 
     single_fastq_values = [
-        'dd06',
-        'A2',
+        '17127FL-27-01-dd06-A2',
         'NGTACTAG',
         'NTAGTCGA',
         'L004',
@@ -286,35 +274,29 @@ class ImportFastQTest(TestCase):
         all_core_objects = CoreData.objects.all().count()
         self.assertEqual(all_core_objects, self.fastq_files_in_folder)
 
-    def test_correct_pool_id(self):
-
-        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[1])
-        actual_pool = core_data_object.pool_id
-        self.assertEqual(actual_pool, self.single_fastq_values[0])
-
     def test_correct_sample_id(self):
 
-        core_data_object = CoreData.objects.get(pool_id=self.single_fastq_values[0])
+        core_data_object = CoreData.objects.get(i7_index_sequence=self.single_fastq_values[1])
         actual_sample = core_data_object.sample_id
-        self.assertEqual(actual_sample, self.single_fastq_values[1])
+        self.assertEqual(actual_sample, self.single_fastq_values[0])
 
     def test_correct_read(self):
 
-        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[1])
+        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[0])        
         actual_read = core_data_object.read
-        self.assertEqual(actual_read, self.single_fastq_values[5])
+        self.assertEqual(actual_read, self.single_fastq_values[4])
 
     def test_correct_i7(self):
 
-        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[1])
+        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[0])
         actual_i7_seq = core_data_object.i7_index_sequence
-        self.assertEqual(actual_i7_seq, self.single_fastq_values[2])
+        self.assertEqual(actual_i7_seq, self.single_fastq_values[1])
 
     def test_correct_i5(self):
 
-        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[1])
+        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[0])
         actual_i5_seq = core_data_object.i5_index_sequence
-        self.assertEqual(str(actual_i5_seq), self.single_fastq_values[3])
+        self.assertEqual(str(actual_i5_seq), self.single_fastq_values[2])
 
 class CompareDataTest(TestCase):
 

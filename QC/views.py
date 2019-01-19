@@ -39,7 +39,7 @@ def run_qc_handler(request):
         form = ProjectDirInputForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            project_dir = form.cleaned_data['project_dir']
+            project_dir = form.cleaned_data['project_directory']
             project_id = project_dir.split('/')[-1]
             timestamp = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
 
