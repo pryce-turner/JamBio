@@ -15,15 +15,18 @@ class ImportAndCompareFormTest(TestCase):
 
     def test_import_form_file_field_label(self):
         form = ImportCompareForm()
-        self.assertTrue(form.fields['sub_sheet'].label == 'Customer Submission Sheet' or form.fields['sub_sheet'].label == None)
-        self.assertTrue(form.fields['project_directory_pulldown'].label == 'Core Data Folder' or form.fields['project_directory_pulldown'].label == None)
+        self.assertTrue(form.fields['sub_sheet'].label == 'Completed Sample Sheet' or form.fields['sub_sheet'].label == None)
+        self.assertTrue(form.fields['project_directory'].label == 'Project Directory' or form.fields['project_directory'].label == None)
 
     def test_file_upload(self):
-        test_sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', ' Bio Sample Details Form - dd06,bbk12.xlsx')
+        test_sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', 'Sample_Submission_Sheet_Indiv.xlsx')
+
+        print(test_sheet_path)
+        print(PROJECT_STORAGE)
 
         with open(test_sheet_path, 'rb') as f:
             form = ImportCompareForm(
-                data={'project_directory_pulldown' : sample_project_path},
+                data={'project_directory' : sample_project_path},
                 files={'sub_sheet': SimpleUploadedFile('sheet', f.read())}
                 )
             assert form.is_valid(), 'Invalid form, errors: {}'.format(form.errors)
@@ -282,7 +285,7 @@ class ImportFastQTest(TestCase):
 
     def test_correct_read(self):
 
-        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[0])        
+        core_data_object = CoreData.objects.get(sample_id=self.single_fastq_values[0])
         actual_read = core_data_object.read
         self.assertEqual(actual_read, self.single_fastq_values[4])
 
@@ -305,10 +308,10 @@ class CompareDataTest(TestCase):
 
     def setUp(self):
 
-        sheet_path = os.path.join(sample_project_path, 'Sample_Sheet', ' Bio Sample Details Form - dd06,bbk12.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'Sample_Submission_Sheet_Indiv.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
-        self.parser.parse_pool_submission()
+        self.parser.parse_individual_library_submission()
 
         self.importer = FastQParser(os.path.join(sample_project_path, 'FastQ_Files'), 'WO-TRANSFER')
         self.importer.parse_fastq_files()
@@ -318,7 +321,7 @@ class CompareDataTest(TestCase):
 
     def test_match_number(self):
 
-        expected_matches = 7
+        expected_matches = 1
         actual_matches = self.comparer.match_num
 
         self.assertEqual(actual_matches, expected_matches)
