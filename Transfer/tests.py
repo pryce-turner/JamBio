@@ -9,7 +9,7 @@ from .views import SubmissionExcelParser, FastQParser, DataComparison
 from .constants import PROJECT_STORAGE
 from .models import TubeInformation, ComponentInformation, CoreData, ExecutionStats
 
-sample_project_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER')
+sample_project_path = os.path.join(PROJECT_STORAGE, 'Transfer_Test')
 
 class ImportAndCompareFormTest(TestCase):
 
@@ -47,7 +47,7 @@ class PoolSubmissionExcelParserTest(TestCase):
 
     def setUp(self):
 
-        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'Sample_Submission_Sheet_Pool.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'Transfer_Test', 'Sample_Sheet', 'Sample_Submission_Sheet_Pool.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_pool_submission()
@@ -55,7 +55,7 @@ class PoolSubmissionExcelParserTest(TestCase):
     def test_init(self):
 
         self.assertEqual(self.parser.submission_type, 'Pooled Libraries')
-        self.assertEqual(self.parser.project_id_from_sheet, 123456)
+        self.assertEqual(self.parser.project_id_from_sheet, 'Transfer_Test')
 
     def test_pool_column_coords(self):
 
@@ -161,7 +161,7 @@ class IndividualSubmissionExcelParserTest(TestCase):
 
     def setUp(self):
 
-        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'Sample_Submission_Sheet_Indiv.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'Transfer_Test', 'Sample_Sheet', 'Sample_Submission_Sheet_Indiv.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_individual_library_submission()
@@ -169,7 +169,7 @@ class IndividualSubmissionExcelParserTest(TestCase):
     def test_init(self):
 
         self.assertEqual(self.parser.submission_type, 'Individual Libraries')
-        self.assertEqual(self.parser.project_id_from_sheet, 123456)
+        self.assertEqual(self.parser.project_id_from_sheet, 'Transfer_Test')
 
     def test_indiv_lib_column_coords(self):
 
@@ -269,7 +269,7 @@ class ImportFastQTest(TestCase):
     def setUp(self):
 
         single_fastq_directory = os.path.join(sample_project_path, 'Single_FastQ')
-        self.importer = FastQParser(single_fastq_directory, 'WO-TRANSFER')
+        self.importer = FastQParser(single_fastq_directory, 'Transfer_Test')
         self.importer.parse_fastq_files()
 
     def test_made_one_object_per_fastq(self):
@@ -303,20 +303,20 @@ class ImportFastQTest(TestCase):
 
 class CompareDataTest(TestCase):
 
-    bad_pairs_cust = [('CCCCCCCC', 'NTAGTCGA'), ('NGTACTAG', 'TTTTTTTTT')]
+    bad_pairs_cust = [('AAAAAAA', 'TTTTTTTT'), ('TTTTTTT', 'AAAAAAA')]
     bad_pairs_core = [('GGGGGGGG', 'NTAGTCGA'), ('NGGAGCCT', 'TTTTTTTTT')]
 
     def setUp(self):
 
-        sheet_path = os.path.join(PROJECT_STORAGE, 'WO-TRANSFER', 'Sample_Sheet', 'Sample_Submission_Sheet_Indiv.xlsx')
+        sheet_path = os.path.join(PROJECT_STORAGE, 'Transfer_Test', 'Sample_Sheet', 'Sample_Submission_Sheet_Indiv.xlsx')
         self.parser = SubmissionExcelParser(sheet_path)
         self.parser.find_columns()
         self.parser.parse_individual_library_submission()
 
-        self.importer = FastQParser(os.path.join(sample_project_path, 'FastQ_Files'), 'WO-TRANSFER')
+        self.importer = FastQParser(os.path.join(sample_project_path, 'FastQ_Files'), 'Transfer_Test')
         self.importer.parse_fastq_files()
 
-        self.comparer = DataComparison('WO-TRANSFER')
+        self.comparer = DataComparison('Transfer_Test')
         self.comparer.compare_data()
 
     def test_match_number(self):

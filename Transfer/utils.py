@@ -294,13 +294,13 @@ class DataComparison(object):
     Uses fuzzy string matching in case first read is N.
     """
 
-    def __init__(self, wo_to_compare):
-        self.wo_to_compare = wo_to_compare
+    def __init__(self, project_to_compare):
+        self.project_to_compare = project_to_compare
 
     def compare_data(self):
 
-        core_data_objects = CoreData.objects.filter(project_id=self.wo_to_compare)
-        customer_objects = ComponentInformation.objects.filter(project_id=self.wo_to_compare)
+        core_data_objects = CoreData.objects.filter(project_id=self.project_to_compare)
+        customer_objects = ComponentInformation.objects.filter(project_id=self.project_to_compare)
 
         core_index_list = []
         customer_index_list = []

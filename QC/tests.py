@@ -15,7 +15,7 @@ class QCTest(TestCase):
 
     def setUp(self):
 
-        self.proj_id = 'WO-000000QC'
+        self.proj_id = 'QC_Test'
         self.timestamp = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
         self.project_directory = os.path.join(PROJECT_STORAGE, self.proj_id)
 
@@ -59,8 +59,7 @@ class QCTest(TestCase):
         self.assertTrue(os.path.isfile(expected_report_path))
 
         # Test report fetching
-
-        id_hash = 'WO-000000QC:GKUfwYU0-724mSN71sMvWmtdor0/'
+        id_hash = 'QC_Test:4bv7IL_Zz9PhsUw8f9cfjZxOM4o/'
         c= Client()
         response = c.get('/QC/reports/' + id_hash)
         self.assertEqual(response.status_code, 200)
