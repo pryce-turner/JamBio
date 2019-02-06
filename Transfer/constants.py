@@ -4,7 +4,7 @@ import os
 Directory tree:
 
 Project_Storage
-    WO-000TEST
+    Transfer_Test
         Sample_Sheet
         FastQ_Files
         QC_Output: 2018-10-08-16-05-10

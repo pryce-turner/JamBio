@@ -28,4 +28,4 @@ class ExecutionStats(models.Model):
     details = models.CharField(max_length=256, null=True)
 
     def __str__(self):
-        return 'WO: ' + self.project_id
+        return 'Project: ' + self.project_id

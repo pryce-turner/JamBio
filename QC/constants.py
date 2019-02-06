@@ -3,7 +3,7 @@ import os
 """
 Directory tree:
 Storage
-    WO-000TEST
+    QC_Test
         Samples Sheet
         FastQ_Files
         QC: 2018-10-08-16-05-10

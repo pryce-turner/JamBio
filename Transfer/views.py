@@ -78,7 +78,7 @@ def import_and_compare(sub_sheet_path, fastq_directory, delete_previous):
             TubeInformation.objects.filter(project_id=current_sheet.project_id_from_sheet).count()
         )
 
-        print('Checking for pre-existing WO objects')
+        print('Checking for pre-existing projects...')
         if preexisting_wo_objects > 0:
             if delete_previous == True:
                 delete_preexisting_wo_objects(current_sheet.project_id_from_sheet)
