@@ -38,7 +38,7 @@ all your FastQ files should live in their own project folder within
 'Project_Storage'. This is where JamBio will go to perform its analyses.
 
 1. The first step should be an integrity check. This can be achieved by filling
-out the [sample submission sheet](./JamBio/Sample_Submission_Sheet). Once you've
+out the [sample submission sheet](./JamBio/Sample_Submission_Sheet.xlsx). Once you've
 done this, navigate to where you're hosting Jambio and go to *Transfer*. Here
 you can upload the aforementioned sample sheet and pick the project folder
 containing your FastQ files.
